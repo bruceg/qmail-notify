@@ -6,3 +6,4 @@ qmail-notify-make.o
 -lbg-iobuf
 -lbg-dict
 -lbg-str
+-lbg-misc

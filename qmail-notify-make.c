@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include <systime.h>
+#include <misc/misc.h>
 #include <msg/msg.h>
 
 #include "qmail-notify.h"
@@ -53,13 +54,13 @@ static char mime_boundary[65];
 
 static void make_mime_boundary(void)
 {
-  static char chars[] = "0123456789ABCDEF";
+  static char chars[] = "0123456789ABCDEFHIJKLMNOPQRTUVWX";
   int i;
   struct timeval now;
   gettimeofday(&now, 0);
-  srandom(now.tv_sec ^ now.tv_usec);
+  random_init(now.tv_sec ^ now.tv_usec ^ getpid());
   for(i = 0; i < 64; i++)
-    mime_boundary[i] = chars[random() % 16];
+    mime_boundary[i] = chars[random_trunc(32)];
   mime_boundary[i] = 0;
 }
 
