@@ -232,6 +232,7 @@ static const char* mime_bounce_header =
 Content-Type: multipart/mixed; boundary=\"%s\"
 
 This is a multi-part message in MIME format.
+(If you can see this message, your E-mail client is not MIME compatible.)
 --%s
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -244,6 +245,7 @@ The mail system will continue to attempt to deliver your message
 to these recipients for a total of %s.  You do not need to
 resend your message at this time.
 
+Recipient(s):
 ";
 
 static const char* message_seperator =
