@@ -3,8 +3,10 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "systime.h"
-#include "msg/msg.h"
+
+#include <systime.h>
+#include <msg/msg.h>
+
 #include "qmail-notify.h"
 
 static const char* bounce_header =
@@ -117,16 +119,16 @@ void load_bounce_body(const char* filename)
   bounce_body = buf;
 }
   
-static void time2str(time_t time, char* buf)
+static void time2str(time_t secs, char* buf)
 {
-  if(time >= 24*60*60)
-    sprintf(buf, "%ld days", time/24/60/60);
-  else if(time >= 60*60)
-    sprintf(buf, "%ld hours", time/60/60);
-  else if(time >= 60)
-    sprintf(buf, "%ld minutes", time/60);
+  if(secs >= 24*60*60)
+    sprintf(buf, "%ld days", secs/24/60/60);
+  else if(secs >= 60*60)
+    sprintf(buf, "%ld hours", secs/60/60);
+  else if(secs >= 60)
+    sprintf(buf, "%ld minutes", secs/60);
   else
-    sprintf(buf, "%ld seconds", time);
+    sprintf(buf, "%ld seconds", secs);
 }
 
 void make_bounce_body(FILE* out, const char* sender, const char* filename,

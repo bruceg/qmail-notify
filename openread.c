@@ -3,7 +3,9 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "str/str.h"
+
+#include <str/str.h>
+
 #include "qmail-notify.h"
 
 int open_file(const char* prefix, const char* filename)

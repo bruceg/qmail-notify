@@ -1,10 +1,8 @@
 openread.o
 qmail-notify-make.o
-cli/cli.a
-cdb/cdb.a
-msg/wrap.a
-msg/msg.a
-iobuf/iobuf.a
-dict/dict.a
-str/str.a
-iopoll.o
+-lbg-cli
+-lbg-cdb
+-lbg-msg
+-lbg-iobuf
+-lbg-dict
+-lbg-str

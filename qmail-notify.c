@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+#include <sys/types.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -22,19 +23,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-#include "cdb/cdb.h"
-#include "cli/cli.h"
-#include "dict/dict.h"
-#include "msg/msg.h"
-#include "msg/wrap.h"
-#include "str/str.h"
-#include "direntry.h"
-#include "fork.h"
-#include "systime.h"
+
+#include <sysdeps.h>
+#include <systime.h>
+#include <cdb/cdb.h>
+#include <cli/cli.h>
+#include <dict/dict.h>
+#include <msg/msg.h>
+#include <msg/wrap.h>
+#include <str/str.h>
+
 #include "qmail-notify.h"
 
 const char program[] = "qmail-notify";
