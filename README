@@ -1,20 +1,45 @@
 qmail-notify
 Delayed delivery notification for qmail
 Bruce Guenter <bruceg@em.ca>
-Version 0.91
-2000-07-13
+Version 0.92
+2001-08-08
 
 This package contains a program to notify senders about email that has
 been held in the qmail queue.
 
-How to install:
+A mailing list has been set up to discuss this and other packages.
+To subscribe, send an email to:
+	bgware-subscribe@lists.em.ca
+A mailing list archive is available at:
+	http://lists.em.ca/?list=bgware
 
-- As root, run "make install"
+Development versions of qmail-notify are available via anonymous CVS.
+Set your CVSROOT to ":pserver:cvs@bruce-guenter.dyndns.org:/CVS",
+login with an empty password, and check out the "qmail-notify" module.
 
-Usage:
+Requirements:
 
-The simple usage is to put qmail-notify into an hourly cron job.  For
-more details on the options, run "qmail-notify -h".
+- qmail 1.01-1.03, with or without the big-todo patch
+
+- cron
+
+Installation:
+
+- As root, run:
+	make
+	./installer
+
+Configuration:
+
+- The simple usage is to put qmail-notify into an hourly cron job.  For
+  more details on the options, run "qmail-notify -h".
+
+- To use an alternate response message, save the message to a file and
+  specify the path to the file with the "-f" option.  The file must
+  contain three instances of "%s".  The first is replaced with the
+  server's hostname; the second is replaced with the notification delay
+  (controlled by the "-t" option); the third is replaced with the
+  message lifetime (controled by the qmail control/queuelifetime file).
 
 This program is Copyright(C) 2000 Bruce Guenter, and may be copied
 according to the GNU GENERAL PUBLIC LICENSE (GPL) Version 2 or a later
