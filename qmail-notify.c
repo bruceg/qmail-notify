@@ -27,6 +27,7 @@
 #include <time.h>
 #include <unistd.h>
 #include "cdb/cdb.h"
+#include "cli/cli.h"
 #include "dict/dict.h"
 #include "msg/msg.h"
 #include "msg/wrap.h"
@@ -57,11 +58,39 @@ static int opt_mime = 0;
 static time_t opt_age = 4*60*60;
 static const char* extra_rcpt_name = "postmaster";
 static ssize_t opt_msgbytes = -1;
+static const char* opt_bounce_filename = 0;
 
 static dict rcpthosts;
 static struct cdb morercpthosts;
 static int morercpthosts_fd;
 static str strbuf;
+
+const char cli_help_prefix[] = "";
+const char cli_help_suffix[] = "";
+const char cli_args_usage[] = "";
+const int cli_args_min = 0;
+const int cli_args_max = 0;
+cli_option cli_options[] = {
+  { 'b', 0, CLI_INTEGER, 0, &opt_msgbytes,
+    "Copy N bytes from the original message into the notice.",
+    "entire message" },
+  { 'd', 0, CLI_FLAG, 1, &opt_debug,
+    "Show debugging messages", 0 },
+  { 'f', 0, CLI_STRING, 0, &opt_bounce_filename,
+    "Load the bounce response message from a file", 0 },
+  { 'm', 0, CLI_FLAG, 1, &opt_mime,
+    "Encode the original message as a MIME attachment", 0 },
+  { 'N', 0, CLI_FLAG, 1, &opt_nosend,
+    "Don't send messages, just print them out", 0 },
+  { 'r', 0, CLI_FLAG, 1, &opt_checkrcpt,
+    "Only respond to senders with a domain listed in qmail's rcpthosts", 0 },
+  { 't', 0, CLI_INTEGER, 0, &opt_age,
+    "Send notifications for messages that are at least N seconds old",
+    "4 hours" },
+  { 'x', 0, CLI_STRING, 0, &extra_rcpt_name,
+    "Send a copy of the notification to the given recipient", "'postmaster'" },
+  { 0,0,0,0,0,0,0 }
+};
 
 void msgf(const char* fmt, ...)
 {
@@ -483,66 +512,23 @@ void load_config(void)
   }
 }
 
-const char* usage_str =
-"usage: qmail-notify [-Nv] [-b BYTES] [-t SECONDS] [-x RECIP]\n"
-"  -b N  Copy N bytes from the original message into the notice.\n"
-"        Setting N to -1 means copy the entire message.  (defaults to -1)\n"
-"  -d    Show debugging messages.\n"
-"  -f F  Load the bounce response message from a file named F.\n"
-"  -h    Show this usage help.\n"
-"  -m    Encode the original message as a MIME attachment.\n"
-"  -N    Don't send messages, just print them out.\n"
-"  -r    Only send to senders with a domain listed in qmail's rcpthosts.\n"
-"  -t N  Send notifications for messages that are N seconds old or older.\n"
-"        (defaults to 4 hours)\n"
-"  -x R  Send a copy of the notification to R.  (defaults to 'postmaster')\n";
-
-void usage(const char* str)
-{
-  if(str)
-    msgf("Error: %s", str);
-  fputs(usage_str, stderr);
-  exit(1);
-}
-
 void load_bounce_body(const char* filename)
 {
   int in;
   struct stat sbuf;
   char* buf;
   if ((in = open(filename, O_RDONLY)) == -1)
-    usage("Could not open bounce response file.");
+    die3sys(111, "Could not open '", filename, "'");
   if (fstat(in, &sbuf) == -1)
-    usage("Could not stat bounce response file.");
+    die3sys(111, "Could not stat '", filename, "'");
   if ((buf = malloc(sbuf.st_size)) == 0)
-    usage("Could not allocate bytes for loading bounce response file.");
+    die1(111, "Could not allocate bytes for loading bounce response file.");
   if (read(in, buf, sbuf.st_size) != sbuf.st_size)
-    usage("Could not read the bounce response file.");
+    die1(111, "Could not read the bounce response file.");
   close(in);
   bounce_body = buf;
 }
   
-void parse_args(int argc, char* argv[])
-{
-  int ch;
-  while((ch = getopt(argc, argv, "b:df:hmNrt:x:")) != EOF) {
-    switch(ch) {
-    case 'b': opt_msgbytes = atoi(optarg);    break;
-    case 'd': opt_debug = 1;                  break;
-    case 'f': load_bounce_body(optarg);       break;
-    case 'h': usage(0);                       break;
-    case 'm': opt_mime = 1;                   break;
-    case 'N': opt_nosend = 1;                 break;
-    case 'r': opt_checkrcpt = 1;              break;
-    case 't': opt_age = atoi(optarg);         break;
-    case 'x': extra_rcpt_name = optarg;       break;
-    case '?': usage(0);
-    }
-  }
-  if(optind < argc)
-    usage(0);
-}
-
 void touch_run_file(void)
 {
   FILE* out = fopen(run_file, "w");
@@ -550,9 +536,9 @@ void touch_run_file(void)
     die1(111, "Could not update run file");
 }
 
-int main(int argc, char* argv[])
+int cli_main(int argc, char* argv[])
 {
-  parse_args(argc, argv);
+  if (opt_bounce_filename != 0) load_bounce_body(opt_bounce_filename);
   load_config();
   scan_queue();
   if(!opt_nosend)

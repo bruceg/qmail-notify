@@ -1,3 +1,4 @@
+cli/cli.a
 cdb/cdb.a
 msg/wrap.a
 msg/msg.a

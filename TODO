@@ -2,9 +2,3 @@
   in other (modified) code.
 
 - Convert all I/O to use lib/iobuf.
-
-- Use lib/cli for command-line argument parsing.
-
-- Use lib/dict to cache rcpthosts.
-
-- Use lib/str for dynamic string allocation.
