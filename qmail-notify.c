@@ -16,18 +16,19 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 #include <ctype.h>
-#include <dirent.h>
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include "direntry.h"
+#include "fork.h"
+#include "systime.h"
 
 static const char* queue_dir = "/var/qmail/queue";
 static const char* control_dir = "/var/qmail/control";
@@ -384,7 +385,7 @@ void scan_info(const char* filename)
 void scan_dir(const char* dirnum)
 {
   DIR* dir;
-  struct dirent* entry;
+  direntry* entry;
   char buf1[100];
   sprintf(buf1, "info/%s", dirnum);
   if((dir = opendir(buf1)) == 0)
@@ -402,7 +403,7 @@ void scan_dir(const char* dirnum)
 void scan_queue(void)
 {
   DIR* dir;
-  struct dirent* entry;
+  direntry* entry;
   if(chdir(queue_dir))
     die("Could not change directory to queue");
   if((dir = opendir("info")) == 0)
