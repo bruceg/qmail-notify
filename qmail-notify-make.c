@@ -123,14 +123,17 @@ void load_bounce_body(const char* filename)
   
 static void time2str(time_t secs, char* buf)
 {
+  const char* name;
   if(secs >= 24*60*60)
-    sprintf(buf, "%ld days", secs/24/60/60);
+    name = " days", secs /= 24*60*60;
   else if(secs >= 60*60)
-    sprintf(buf, "%ld hours", secs/60/60);
+    name = " hours", secs /= 60*60;
   else if(secs >= 60)
-    sprintf(buf, "%ld minutes", secs/60);
+    name = " minutes", secs /= 60;
   else
-    sprintf(buf, "%ld seconds", secs);
+    name = " seconds";
+  strcpy(buf, utoa(secs));
+  strcat(buf, name);
 }
 
 void make_bounce_body(int fd, const char* sender, const char* filename,
