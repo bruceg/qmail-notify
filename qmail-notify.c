@@ -89,8 +89,11 @@ void time2str(time_t time, char* buf)
 int open_file(const char* prefix, const char* filename)
 {
   char fullname[100];
-  sprintf(fullname, "%s/%s", prefix, filename);
-  return open(fullname, O_RDONLY);
+  if (prefix != 0) {
+    sprintf(fullname, "%s/%s", prefix, filename);
+    return open(fullname, O_RDONLY);
+  }
+  return open(filename, O_RDONLY);
 }
 
 char* read_file(const char* prefix, const char* filename)
@@ -415,7 +418,7 @@ void scan_queue(void)
 
 static void load_rcpthosts(void)
 {
-  char* rh = read_file(control_dir, "rcpthosts");
+  char* rh = read_file(0, "rcpthosts");
   if (!dict_init(&rcpthosts)) oom();
   if (rh) {
     const char* curr = rh;
@@ -440,10 +443,10 @@ void load_config(void)
 {
   wrap_chdir(control_dir);
   
-  me = read_line(control_dir, "me");
+  me = read_line(0, "me");
   if(!*me)
     die1(111, "Could not read control/me");
-  queuelifetime = read_int(control_dir, "queuelifetime", 604800);
+  queuelifetime = read_int(0, "queuelifetime", 604800);
   now = time(0);
   lastrun = read_int("", run_file, 0);
   
