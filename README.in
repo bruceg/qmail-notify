@@ -1,8 +1,8 @@
-qmail-notify
+@PACKAGE@
 Delayed delivery notification for qmail
 Bruce Guenter <bruceg@em.ca>
-Version 0.93
-2002-04-25
+Version @VERSION@
+@TODAY@
 
 This package contains a program to notify senders about email that has
 been held in the qmail queue.
@@ -13,9 +13,8 @@ To subscribe, send an email to:
 A mailing list archive is available at:
 	http://lists.em.ca/?list=bgware
 
-Development versions of qmail-notify are available via anonymous CVS.
-Set your CVSROOT to ":pserver:cvs@bruce-guenter.dyndns.org:/CVS",
-login with an empty password, and check out the "qmail-notify" module.
+Development versions of @PACKAGE@ are available via Subversion at:
+	svn://bruce-guenter.dyndns.org/@PACKAGE@/trunk
 
 Requirements:
 
@@ -25,9 +24,14 @@ Requirements:
 
 Installation:
 
-- As root, run:
-	make
+- Make sure the latest version of bglibs from
+  http://untroubled.org/bglibs/ is compiled and installed.
+- Build the sources by running "make"
+- Run the "instshow" command to see what will be installed (optional).
+- After the package has been compiled, run the following commands as root:
 	./installer
+	./instcheck
+  These commands will produce no output if there are no errors.
 
 Configuration:
 
@@ -41,7 +45,7 @@ Configuration:
   (controlled by the "-t" option); the third is replaced with the
   message lifetime (controled by the qmail control/queuelifetime file).
 
-This program is Copyright(C) 2000 Bruce Guenter, and may be copied
+This program is Copyright(C) 2000,2003 Bruce Guenter, and may be copied
 according to the GNU GENERAL PUBLIC LICENSE (GPL) Version 2 or a later
 version.  A copy of this license is included with this package.  This
 package comes with no warranty of any kind.
