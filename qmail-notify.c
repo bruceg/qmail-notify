@@ -29,6 +29,7 @@
 #include "cdb/cdb.h"
 #include "dict/dict.h"
 #include "msg/msg.h"
+#include "msg/wrap.h"
 #include "str/str.h"
 #include "direntry.h"
 #include "fork.h"
@@ -403,8 +404,7 @@ void scan_queue(void)
 {
   DIR* dir;
   direntry* entry;
-  if(chdir(queue_dir))
-    die1sys(111, "Could not change directory to queue");
+  wrap_chdir(queue_dir);
   if((dir = opendir("info")) == 0)
     die1sys(111, "Can't open queue directory");
   while((entry = readdir(dir)) != 0)
@@ -438,6 +438,8 @@ static void load_rcpthosts(void)
 
 void load_config(void)
 {
+  wrap_chdir(control_dir);
+  
   me = read_line(control_dir, "me");
   if(!*me)
     die1(111, "Could not read control/me");
