@@ -1,3 +1,5 @@
+openread.o
+qmail-notify-make.o
 cli/cli.a
 cdb/cdb.a
 msg/wrap.a
