@@ -1,0 +1,5 @@
+Your message has been received by %s but has been
+undeliverable to the following recipients for at least %s.
+The mail system will continue to attempt to deliver your message
+to these recipients for a total of %s.  You do not need to
+resend your message at this time.
