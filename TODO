@@ -1,3 +1,6 @@
+- Make the bounce generation code a stand-alone module to allow plugging
+  in other (modified) code.
+
 - Convert all I/O to use lib/iobuf.
 
 - Use lib/cli for command-line argument parsing.
