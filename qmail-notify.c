@@ -116,18 +116,18 @@ char* read_file(const char* prefix, const char* filename)
   return data;
 }
 
-char* read_line(const char* prefix, const char* filename)
+char* read_line(const char* filename)
 {
-  char* data = read_file(prefix, filename);
+  char* data = read_file(0, filename);
   char* nl = strchr(data, '\n');
   if(nl)
     *nl = 0;
   return data;
 }
 
-long read_int(const char* prefix, const char* filename, long dflt)
+long read_int(const char* filename, long dflt)
 {
-  char* data = read_line(prefix, filename);
+  char* data = read_line(filename);
   long result = dflt;
   if(*data) {
     char* ptr;
@@ -445,12 +445,12 @@ void load_config(void)
 {
   wrap_chdir(control_dir);
   
-  me = read_line(0, "me");
+  me = read_line("me");
   if(!*me)
     die1(111, "Could not read control/me");
-  queuelifetime = read_int(0, "queuelifetime", 604800);
+  queuelifetime = read_int("queuelifetime", 604800);
   now = time(0);
-  lastrun = read_int("", run_file, 0);
+  lastrun = read_int(run_file, 0);
   
   if(extra_rcpt_name && *extra_rcpt_name) {
     if(strchr(extra_rcpt_name, '@'))
