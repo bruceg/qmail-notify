@@ -26,14 +26,7 @@ EXTRAS_DIST="COPYING cron.hourly"
 
 VERSION_BASE=
 
-# Set HOSTNAME to the name of the host to which to connect via ssh
-HOSTNAME=em.ca
-
-# Set USERNAME to the name to log in as
-USERNAME=bruceg
-
-# Set PKGDIR to the directory to change into before delivering the files
-PKGDIR=www/qmail-notify
+REMOTEPATH=bruceg@em.ca:www/qmail-notify
 
 # Set RPMUPLOAD to a list of additional "hostname/path" destinations to
 # which to upload the source and binary RPMs.
