@@ -26,7 +26,10 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include "cdb/cdb.h"
+#include "dict/dict.h"
 #include "msg/msg.h"
+#include "str/str.h"
 #include "direntry.h"
 #include "fork.h"
 #include "systime.h"
@@ -54,6 +57,11 @@ static time_t opt_age = 4*60*60;
 static const char* extra_rcpt_name = "postmaster";
 static ssize_t opt_msgbytes = -1;
 
+static dict rcpthosts;
+static cdb morercpthosts;
+static int morercpthosts_fd;
+static str strbuf;
+
 void msgf(const char* fmt, ...)
 {
   va_list ap;
@@ -62,6 +70,8 @@ void msgf(const char* fmt, ...)
   vfprintf(stderr, fmt, ap);
   fputs("\n", stderr);
 }
+
+void oom(void) { die1(111, "Out of memory"); }
 
 void time2str(time_t time, char* buf)
 {
@@ -137,7 +147,6 @@ unsigned count_undone(const char* list)
 
 int check_rcpt(const char* sender)
 {
-  static char* cache = 0;
   char* domain;
   
   if(!opt_checkrcpt)
@@ -146,18 +155,10 @@ int check_rcpt(const char* sender)
   domain = strchr(sender, '@');
   if(!domain)
     return 0;
-  if(!cache)
-    cache = read_file(control_dir, "rcpthosts");
 
   for(++domain; domain; domain = strchr(domain+1, '.')) {
-    size_t len = strlen(domain);
-    char* cptr = cache;
-    while(*cptr) {
-      if(!strncasecmp(cptr, domain, len) && isspace(cptr[len]))
-	return 1;
-      cptr = strchr(cptr, '\n');
-      if(cptr) ++cptr;
-    }
+    if (!str_copys(&strbuf, domain)) oom();
+    if (dict_get(&rcpthosts, &strbuf)) return 1;
   }
   return 0;
 }
@@ -412,6 +413,29 @@ void scan_queue(void)
   closedir(dir);
 }
 
+static void load_rcpthosts(void)
+{
+  char* rh = read_file(control_dir, "rcpthosts");
+  if (!dict_init(&rcpthosts)) oom();
+  if (rh) {
+    const char* curr = rh;
+    while (*curr) {
+      const char* end;
+      const char* next;
+      if ((end = strchr(curr, '\n')) != 0)
+	next = end + 1;
+      else
+	next = end = curr + strlen(curr);
+      if (*curr != '#') {
+	if (!str_copyb(&strbuf, curr, end-curr)) oom();
+	if (!dict_add(&rcpthosts, &strbuf, 0)) oom();
+      }
+      curr = next;
+    }
+    free(rh);
+  }
+}
+
 void load_config(void)
 {
   me = read_line(control_dir, "me");
@@ -434,6 +458,8 @@ void load_config(void)
   }
   else
     extra_rcpt = 0;
+
+  if (opt_checkrcpt) load_rcpthosts();
 
   if(opt_debug) {
     msgf("me='%s'", me);
