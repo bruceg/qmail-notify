@@ -88,12 +88,14 @@ void time2str(time_t time, char* buf)
 
 int open_file(const char* prefix, const char* filename)
 {
-  char fullname[100];
+  static str fullname;
+  if (!str_truncate(&fullname, 0)) oom();
   if (prefix != 0) {
-    sprintf(fullname, "%s/%s", prefix, filename);
-    return open(fullname, O_RDONLY);
+    if (!str_copys(&fullname, prefix)) oom();
+    if (!str_catc(&fullname, '/')) oom();
   }
-  return open(filename, O_RDONLY);
+  if (str_cats(&fullname, filename)) oom();
+  return open(fullname.s, O_RDONLY);
 }
 
 char* read_file(const char* prefix, const char* filename)
