@@ -215,7 +215,7 @@ void scan_info(const char* filename)
   sprintf(infoname, "info/%s", filename);
   if((fd = open(infoname, O_RDONLY)) == -1 ||
      fstat(fd, &statbuf) == -1)
-    die1sys(111, "Can't open or stat info file");
+    die3sys(111, "Can't open or stat info file '", infoname, "'");
   /* Handle the file only if it's expiry time (creation time + opt_age)
      is before now and after the last run */
   expiry = statbuf.st_mtime + opt_age;
