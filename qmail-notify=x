@@ -1,9 +1,4 @@
 openread.o
 qmail-notify-make.o
 -lbg-cli
--lbg-cdb
--lbg-msg
--lbg-iobuf
--lbg-dict
--lbg-str
--lbg-misc
+-lbg
