@@ -137,7 +137,7 @@ static void time2str(time_t secs, char* buf)
 }
 
 void make_bounce_body(int fd, const char* sender, const char* filename,
-		      const char* remotes, const char* locals)
+		      const char* remotes, const char* locals, time_t age)
 {
   const char* ptr;
   char time1[128];
@@ -145,7 +145,7 @@ void make_bounce_body(int fd, const char* sender, const char* filename,
   FILE* out;
 
   out = fdopen(fd, "w");
-  time2str(opt_age, time1);
+  time2str(age, time1);
   time2str(queuelifetime, time2);
   fprintf(out, bounce_header, me, sender);
   if(opt_mime) {

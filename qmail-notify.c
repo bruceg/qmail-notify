@@ -44,6 +44,7 @@ static const char* queue_dir = "/var/qmail/queue";
 static const char* control_dir = "/var/qmail/control";
 static const char* qmail_inject = "/var/qmail/bin/qmail-inject";
 static const char* run_file = "/var/run/qmail-notify.time";
+static const time_t default_age = 4*60*60;
 
 static time_t now;
 static time_t lastrun;
@@ -56,7 +57,8 @@ int opt_checkrcpt = 0;
 int opt_debug = 0;
 int opt_nosend = 0;
 int opt_mime = 0;
-time_t opt_age = 4*60*60;
+static const time_t* opt_ages = 0;
+static unsigned opt_age_count = 0;
 const char* extra_rcpt_name = 0;
 int opt_msgbytes = -1;
 const char* opt_bounce_filename = 0;
@@ -66,8 +68,27 @@ static struct cdb morercpthosts;
 static int morercpthosts_fd;
 static str strbuf;
 
+void oom(void) { die1(111, "Out of memory"); }
+
+static void parse_age(const char* s, const cli_option* o)
+{
+  char* end;
+  time_t* n;
+  if ((n = realloc((char*)opt_ages, (opt_age_count+1) * sizeof *n)) == 0)
+    oom();
+  n[opt_age_count] = strtoul(s, &end, 0);
+  if (*end != 0) die2(111, "Specified age is not a number: ", s);
+  ++opt_age_count;
+  opt_ages = n;
+}
+
 const char cli_help_prefix[] = "";
-const char cli_help_suffix[] = "";
+const char cli_help_suffix[] = "\n"
+"The -t option may be used multiple times to effect multiple notifications.\n"
+"For example:\n"
+"    qmail-notify -t 14400 -t 86400\n"
+"Would send one notification at 4 hours, and one at 24 hours.  The times\n"
+"will be sorted internally and may be listed in any order.\n";
 const char cli_args_usage[] = "";
 const int cli_args_min = 0;
 const int cli_args_max = 0;
@@ -85,15 +106,13 @@ cli_option cli_options[] = {
     "Don't send messages, just print them out", 0 },
   { 'r', 0, CLI_FLAG, 1, &opt_checkrcpt,
     "Only respond to senders with a domain listed in qmail's rcpthosts", 0 },
-  { 't', 0, CLI_INTEGER, 0, &opt_age,
+  { 't', 0, CLI_FUNCTION, 0, parse_age,
     "Send notifications for messages that are at least N seconds old",
     "4 hours" },
   { 'x', 0, CLI_STRING, 0, &extra_rcpt_name,
     "Send a copy of the notification to the given recipient", 0 },
   { 0,0,0,0,0,0,0 }
 };
-
-void oom(void) { die1(111, "Out of memory"); }
 
 unsigned count_undone(const char* list)
 {
@@ -172,16 +191,16 @@ void wait_inject(void)
 }
 
 void send_bounce(const char* sender, const char* filename,
-		 const char* remotes, const char* locals)
+		 const char* remotes, const char* locals, time_t age)
 {
   int fd = fork_inject(sender);
-  make_bounce_body(fd, sender, filename, remotes, locals);
+  make_bounce_body(fd, sender, filename, remotes, locals, age);
   if (close(fd) != 0)
     die1sys(111, "Writing to qmail-inject failed");
   wait_inject();
 }
 
-void make_bounce(const char* sender, const char* filename)
+void make_bounce(const char* sender, const char* filename, time_t age)
 {
   char* remotes = read_file("remote", filename);
   char* locals = read_file("local", filename);
@@ -189,7 +208,7 @@ void make_bounce(const char* sender, const char* filename)
   debug6(1, "filename=", filename, " sender='", sender, "' undone=", utoa(undone));
   
   if(undone)
-    send_bounce(sender, filename, remotes, locals);
+    send_bounce(sender, filename, remotes, locals, age);
   free(locals);
   free(remotes);
 }
@@ -200,6 +219,7 @@ void scan_info(const char* filename)
   char infoname[100];
   time_t expiry;
   int fd;
+  unsigned i;
   strcpy(infoname, "info/");
   strcpy(infoname+5, filename);
   if((fd = open(infoname, O_RDONLY)) == -1 ||
@@ -207,21 +227,26 @@ void scan_info(const char* filename)
     die3sys(111, "Can't open or stat info file '", infoname, "'");
   /* Handle the file only if it's expiry time (creation time + opt_age)
      is before now and after the last run */
-  expiry = statbuf.st_mtime + opt_age;
-  debug4(1, "filename=", filename, " expiry=", utoa(expiry));
-  if(expiry > now)
-    debug1(1, "ignoring, has not yet expired");
-  else if(expiry <= lastrun)
-    debug1(1, "ignoring, was previously expired");
-  else {
-    /* Load the sender address from the info file */
-    char* sender = malloc(statbuf.st_size);
-    read(fd, sender, statbuf.st_size);
-    if(check_rcpt(sender+1))
-      make_bounce(sender+1, filename);
-    else
-      debug1(1, "ignoring, sender was not in rcpthosts");
-    free(sender);
+  for (i = 0; i < opt_age_count; ++i) {
+    expiry = statbuf.st_mtime + opt_ages[i];
+    debug4(1, "filename=", filename, " expiry=", utoa(expiry));
+    if(expiry > now)
+      debug1(1, "ignoring, has not yet expired");
+    else if(expiry <= lastrun) {
+      debug1(1, "ignoring, was previously expired");
+      break;
+    }
+    else {
+      /* Load the sender address from the info file */
+      char* sender = malloc(statbuf.st_size);
+      read(fd, sender, statbuf.st_size);
+      if(check_rcpt(sender+1))
+	make_bounce(sender+1, filename, opt_ages[i]);
+      else
+	debug1(1, "ignoring, sender was not in rcpthosts");
+      free(sender);
+      break;
+    }
   }
   close(fd);
 }
@@ -287,6 +312,8 @@ static void load_rcpthosts(void)
 
 void load_config(void)
 {
+  unsigned i;
+
   wrap_chdir(control_dir);
   
   me = read_line("me");
@@ -317,20 +344,35 @@ void load_config(void)
   debug3(1, "extra_rcpt='", extra_rcpt, "'");
   debug2(1, "now=", utoa(now));
   debug2(1, "lastrun=", utoa(lastrun));
-  debug2(1, "opt_age=", utoa(opt_age));
+  for (i = 0; i < opt_age_count; ++i)
+    debug2(1, "opt_ages[]=", utoa(opt_ages[i]));
 }
 
 void touch_run_file(void)
 {
   obuf out;
-  if (!obuf_open(&out, run_file, OBUF_CREATE|OBUF_EXCLUSIVE, 0666, 0) ||
+  if (!obuf_open(&out, run_file, OBUF_CREATE|OBUF_TRUNCATE, 0666, 0) ||
       !obuf_putu(&out, now) ||
       !obuf_close(&out))
     die1sys(111, "Could not update run file");
 }
 
+static int cmp_age(const void* aptr, const void* bptr)
+{
+  time_t a = *(time_t*)aptr;
+  time_t b = *(time_t*)bptr;
+  return b - a;
+}
+
 int cli_main(int argc, char* argv[])
 {
+  if (!opt_ages) {
+    opt_ages = &default_age;
+    opt_age_count = 1;
+  }
+  else
+    /* Sort the ages into descending order */
+    qsort((void*)opt_ages, opt_age_count, sizeof *opt_ages, cmp_age);
   if (opt_bounce_filename != 0) load_bounce_body(opt_bounce_filename);
   load_config();
   scan_queue();
