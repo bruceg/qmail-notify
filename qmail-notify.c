@@ -40,10 +40,10 @@ const char program[] = "qmail-notify";
 const int msg_show_pid = 0;
 int msg_debug_bits = 0;
 
-static const char* queue_dir = "/var/qmail/queue";
-static const char* control_dir = "/var/qmail/control";
-static const char* qmail_inject = "/var/qmail/bin/qmail-inject";
-static const char* run_file = "/var/run/qmail-notify.time";
+static const char queue_dir[] = "/var/qmail/queue";
+static const char control_dir[] = "/var/qmail/control";
+static const char qmail_inject[] = "/var/qmail/bin/qmail-inject";
+static const char run_file[] = "/var/run/qmail-notify.time";
 static const time_t default_age = 4*60*60;
 
 static time_t now;
@@ -53,6 +53,8 @@ const char* me = 0;
 time_t queuelifetime = 0;
 static const char* extra_rcpt = 0;
 
+static const char* opt_run_file = run_file;
+static const char* opt_qmail_inject = qmail_inject;
 int opt_checkrcpt = 0;
 int opt_debug = 0;
 int opt_nosend = 0;
@@ -104,11 +106,15 @@ cli_option cli_options[] = {
     "Encode the original message as a MIME attachment", 0 },
   { 'N', 0, CLI_FLAG, 1, &opt_nosend,
     "Don't send messages, just print them out", 0 },
+  { 'q', 0, CLI_STRING, 0, &opt_qmail_inject,
+    "Path to qmail-inject program", qmail_inject },
   { 'r', 0, CLI_FLAG, 1, &opt_checkrcpt,
     "Only respond to senders with a domain listed in qmail's rcpthosts", 0 },
   { 't', 0, CLI_FUNCTION, 0, parse_age,
     "Send notifications for messages that are at least N seconds old",
     "4 hours" },
+  { 'T', 0, CLI_STRING, 0, &opt_run_file,
+    "Full path to the timestamp file", run_file },
   { 'x', 0, CLI_STRING, 0, &extra_rcpt_name,
     "Send a copy of the notification to the given recipient", 0 },
   { 0,0,0,0,0,0,0 }
@@ -151,7 +157,7 @@ int fork_inject(const char* sender)
 {
   int p[2];
 
-  debug6(1, "forking ", qmail_inject, " -f '' -a '", sender, "' ", extra_rcpt);
+  debug6(1, "forking ", opt_qmail_inject, " -f '' -a '", sender, "' ", extra_rcpt);
 
   if(opt_nosend) {
     inject_pid = 0;
@@ -168,7 +174,7 @@ int fork_inject(const char* sender)
     close(0);
     dup2(p[0], 0);
     close(p[0]);
-    execl(qmail_inject, qmail_inject, "-f", "", "-a", sender, 
+    execl(opt_qmail_inject, opt_qmail_inject, "-f", "", "-a", sender, 
 	  extra_rcpt, 0);
     die1sys(111, "Exec of qmail-inject failed");
   default:
@@ -321,7 +327,7 @@ void load_config(void)
     die1(111, "Could not read control/me");
   queuelifetime = read_int("queuelifetime", 604800);
   now = time(0);
-  lastrun = read_int(run_file, 0);
+  lastrun = read_int(opt_run_file, 0);
   
   if(extra_rcpt_name && *extra_rcpt_name) {
     if(strchr(extra_rcpt_name, '@'))
@@ -351,7 +357,7 @@ void load_config(void)
 void touch_run_file(void)
 {
   obuf out;
-  if (!obuf_open(&out, run_file, OBUF_CREATE|OBUF_TRUNCATE, 0666, 0) ||
+  if (!obuf_open(&out, opt_run_file, OBUF_CREATE|OBUF_TRUNCATE, 0666, 0) ||
       !obuf_putu(&out, now) ||
       !obuf_close(&out))
     die1sys(111, "Could not update run file");
