@@ -1,5 +1,5 @@
 PACKAGE = qmail-notify
-VERSION = 0.91
+VERSION = 0.92
 
 CC = gcc
 CFLAGS = -O -g -W -Wall

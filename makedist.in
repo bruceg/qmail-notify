@@ -5,7 +5,7 @@ PKGURL=http://em.ca/~bruceg/qmail-notify/
 
 # If LISTSUB is set, makedist will add a note regarding mailing list
 # subscription.
-#LISTSUB=rpms-subscribe@lists.em.ca
+LISTSUB="bgware-subscribe@lists.em.ca"
 
 # Set MAKERPM to non-empty if the tarball is to be built into a RPM.
 MAKERPM=true
@@ -33,7 +33,7 @@ REMOTEPATH=bruceg@em.ca:www/qmail-notify
 RPMUPLOAD="incoming.redhat.com/libc6"
 
 # Set LIST to the mailing list(s) to send the announcement to
-LIST="qmail@list.cr.yp.to"
+LIST="qmail@list.cr.yp.to bgware@lists.em.ca"
 
 # Run any extra commands to prepare the source tree (such as making
 # documentation) here.
