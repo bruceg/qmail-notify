@@ -7,3 +7,4 @@ msg/msg.a
 iobuf/iobuf.a
 dict/dict.a
 str/str.a
+iopoll.o

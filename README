@@ -2,7 +2,7 @@ qmail-notify
 Delayed delivery notification for qmail
 Bruce Guenter <bruceg@em.ca>
 Version 0.93
-2002-01-09
+2002-04-25
 
 This package contains a program to notify senders about email that has
 been held in the qmail queue.
