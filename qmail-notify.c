@@ -222,47 +222,42 @@ static void make_mime_boundary(void)
 }
 
 static const char* bounce_header =
-"From: <MAILER-DAEMON@%s>
-To: <%s>
-Subject: delayed delivery notice
-";
+"From: <MAILER-DAEMON@%s>\n"
+"To: <%s>\n"
+"Subject: delayed delivery notice\n";
 
 static const char* mime_bounce_header =
-"MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary=\"%s\"
-
-This is a multi-part message in MIME format.
-(If you can see this message, your E-mail client is not MIME compatible.)
---%s
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-";
+"MIME-Version: 1.0\n"
+"Content-Type: multipart/mixed; boundary=\"%s\"\n"
+"\n"
+"This is a multi-part message in MIME format.\n"
+"(If you can see this message, your E-mail client is not MIME compatible.)\n"
+"--%s\n"
+"Content-Type: text/plain; charset=us-ascii\n"
+"Content-Transfer-Encoding: 7bit\n";
 
 static const char* bounce_body =
-"Your message has been received by %s but has been
-undeliverable to the following recipients for at least %s.
-The mail system will continue to attempt to deliver your message
-to these recipients for a total of %s.  You do not need to
-resend your message at this time.
+"Your message has been received by %s but has been\n"
+"undeliverable to the following recipients for at least %s.\n"
+"The mail system will continue to attempt to deliver your message\n"
+"to these recipients for a total of %s.  You do not need to\n"
+"resend your message at this time.\n";
 
-Recipient(s):
-";
+static const char* recipients_prefix = "\nRecipient(s):\n";
 
 static const char* message_seperator =
-"
---- Below this line is a copy of the original message.
-
-";
+"\n"
+"--- Below this line is a copy of the original message.\n"
+"\n";
 
 static const char* mime_message_seperator =
-"
-The following attachment contains a copy of the original message.
-
---%s
-Content-Type: message/rfc822
-Content-Disposition: inline
-
-";
+"\n"
+"The following attachment contains a copy of the original message.\n"
+"\n"
+"--%s\n"
+"Content-Type: message/rfc822\n"
+"Content-Disposition: inline\n"
+"\n";
 
 static const char* mime_message_end = "\n--%s--";
 
@@ -288,7 +283,7 @@ static void copy_message(FILE* out, const char* filename)
     ssize_t total = 0;
     while(total < opt_msgbytes) {
       ssize_t tord = ((unsigned)opt_msgbytes < sizeof buf) ?
-	opt_msgbytes : sizeof buf;
+	opt_msgbytes : (ssize_t)sizeof buf;
       ssize_t rd = read(fd, buf, tord);
       if(rd <= 0)
 	break;
@@ -320,8 +315,9 @@ void send_bounce(const char* sender, const char* filename,
     make_mime_boundary();
     fprintf(out, mime_bounce_header, mime_boundary, mime_boundary);
   }
-  fprintf(out, "\n");
+  fputs("\n", out);
   fprintf(out, bounce_body, me, time1, time2);
+  fputs(recipients_prefix, out);
   for(ptr = locals; *ptr; ptr += strlen(ptr)+1)
     if(*ptr == 'T')
       fprintf(out, "\t%s\n", ptr+1);
@@ -451,18 +447,17 @@ void load_config(void)
 }
 
 const char* usage_str =
-"usage: qmail-notify [-Nv] [-b BYTES] [-t SECONDS] [-x RECIP]
-  -b N  Copy N bytes from the original message into the notice.
-        Setting N to -1 means copy the entire message.  (defaults to -1)
-  -d    Show debugging messages.
-  -h    Show this usage help.
-  -m    Encode the original message as a MIME attachment.
-  -N    Don't send messages, just print them out.
-  -r    Only send to senders with a domain listed in qmail's rcpthosts.
-  -t N  Send notifications for messages that are N seconds old or older.
-        (defaults to 4 hours)
-  -x R  Send a copy of the notification to R.  (defaults to 'postmaster')
-";
+"usage: qmail-notify [-Nv] [-b BYTES] [-t SECONDS] [-x RECIP]\n"
+"  -b N  Copy N bytes from the original message into the notice.\n"
+"        Setting N to -1 means copy the entire message.  (defaults to -1)\n"
+"  -d    Show debugging messages.\n"
+"  -h    Show this usage help.\n"
+"  -m    Encode the original message as a MIME attachment.\n"
+"  -N    Don't send messages, just print them out.\n"
+"  -r    Only send to senders with a domain listed in qmail's rcpthosts.\n"
+"  -t N  Send notifications for messages that are N seconds old or older.\n"
+"        (defaults to 4 hours)\n"
+"  -x R  Send a copy of the notification to R.  (defaults to 'postmaster')\n";
 
 void usage(const char* str)
 {
