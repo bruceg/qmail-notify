@@ -250,7 +250,7 @@ void scan_info(const char* filename)
       if(check_rcpt(sender+1))
 	make_bounce(sender+1, filename, opt_ages[i]);
       else
-	debug1(1, "ignoring, sender was not in rcpthosts");
+	debug2(1, "ignoring, sender was not in rcpthosts: ", sender+1);
       free(sender);
       break;
     }
