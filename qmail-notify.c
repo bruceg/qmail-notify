@@ -300,8 +300,7 @@ static void copy_message(FILE* out, const char* filename)
   close(fd);
   if(opt_mime)
     fprintf(out, mime_message_end, mime_boundary);
-  else
-    fputc('\n', out);
+  fputc('\n', out);
 }
 
 void send_bounce(const char* sender, const char* filename,
