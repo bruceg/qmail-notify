@@ -59,7 +59,7 @@ static const char* extra_rcpt_name = "postmaster";
 static ssize_t opt_msgbytes = -1;
 
 static dict rcpthosts;
-static cdb morercpthosts;
+static struct cdb morercpthosts;
 static int morercpthosts_fd;
 static str strbuf;
 
@@ -94,7 +94,7 @@ int open_file(const char* prefix, const char* filename)
     if (!str_copys(&fullname, prefix)) oom();
     if (!str_catc(&fullname, '/')) oom();
   }
-  if (str_cats(&fullname, filename)) oom();
+  if (!str_cats(&fullname, filename)) oom();
   return open(fullname.s, O_RDONLY);
 }
 
@@ -165,6 +165,9 @@ int check_rcpt(const char* sender)
   for(++domain; domain; domain = strchr(domain+1, '.')) {
     if (!str_copys(&strbuf, domain)) oom();
     if (dict_get(&rcpthosts, &strbuf)) return 1;
+    if (morercpthosts_fd != -1 &&
+	cdb_find(&morercpthosts, strbuf.s, strbuf.len) != 0)
+      return 1;
   }
   return 0;
 }
@@ -439,6 +442,8 @@ static void load_rcpthosts(void)
     }
     free(rh);
   }
+  if ((morercpthosts_fd = open_file(0, "morercpthosts.cdb")) != -1)
+    cdb_init(&morercpthosts, morercpthosts_fd);
 }
 
 void load_config(void)

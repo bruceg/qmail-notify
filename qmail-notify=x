@@ -1,3 +1,4 @@
+cdb/cdb.a
 msg/wrap.a
 msg/msg.a
 iobuf/iobuf.a
