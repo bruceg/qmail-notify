@@ -2,4 +2,9 @@
 Changes in version 0.92
 
 - Added support for MIME-encoded attachments.
+
+- Added support for loading an external bounce response message file.
+
+Development of this version has been sponsored by FutureQuest, Inc.
+ossi@FutureQuest.net  http://www.FutureQuest.net/
 -------------------------------------------------------------------------------
