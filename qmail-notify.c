@@ -406,6 +406,7 @@ const char* usage_str =
   -b N  Copy N bytes from the original message into the notice.
         Setting N to -1 means copy the entire message.  (defaults to -1)
   -d    Show debugging messages.
+  -h    Show this usage help.
   -N    Don't send messages, just print them out.
   -r    Only send to senders with a domain listed in qmail's rcpthosts.
   -t N  Send notifications for messages that are N seconds old or older.
@@ -425,10 +426,11 @@ void usage(const char* str)
 void parse_args(int argc, char* argv[])
 {
   int ch;
-  while((ch = getopt(argc, argv, "b:dNrt:x:")) != EOF) {
+  while((ch = getopt(argc, argv, "b:dhNrt:x:")) != EOF) {
     switch(ch) {
     case 'b': opt_msgbytes = atoi(optarg);    break;
     case 'd': opt_debug = 1;                  break;
+    case 'h': usage(0);                       break;
     case 'N': opt_nosend = 1;                 break;
     case 'r': opt_checkrcpt = 1;              break;
     case 't': opt_age = atoi(optarg);         break;

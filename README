@@ -13,7 +13,8 @@ How to install:
 
 Usage:
 
-The simple usage is to put qmail-notify into an hourly cron job.
+The simple usage is to put qmail-notify into an hourly cron job.  For
+more details on the options, run "qmail-notify -h".
 
 This program is Copyright(C) 2000 Bruce Guenter, and may be copied
 according to the GNU GENERAL PUBLIC LICENSE (GPL) Version 2 or a later
