@@ -3,6 +3,8 @@ Changes in version 0.93
 
 - Added support for morercpthosts.cdb.
 
+- Now defaults to not sending a copy of the nofication.
+
 - Recoded to use iobuf libraries.
 
 Development of this version has been sponsored by FutureQuest, Inc.

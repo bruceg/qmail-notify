@@ -56,7 +56,7 @@ static int opt_debug = 0;
 static int opt_nosend = 0;
 static int opt_mime = 0;
 static time_t opt_age = 4*60*60;
-static const char* extra_rcpt_name = "postmaster";
+static const char* extra_rcpt_name = 0;
 static ssize_t opt_msgbytes = -1;
 static const char* opt_bounce_filename = 0;
 
@@ -88,7 +88,7 @@ cli_option cli_options[] = {
     "Send notifications for messages that are at least N seconds old",
     "4 hours" },
   { 'x', 0, CLI_STRING, 0, &extra_rcpt_name,
-    "Send a copy of the notification to the given recipient", "'postmaster'" },
+    "Send a copy of the notification to the given recipient", 0 },
   { 0,0,0,0,0,0,0 }
 };
 
