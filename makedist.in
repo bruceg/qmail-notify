@@ -5,7 +5,7 @@ PKGURL=http://em.ca/~bruceg/qmail-notify/
 
 # If LISTSUB is set, makedist will add a note regarding mailing list
 # subscription.
-LISTSUB=rpms-subscribe@lists.em.ca
+#LISTSUB=rpms-subscribe@lists.em.ca
 
 # Set MAKERPM to non-empty if the tarball is to be built into a RPM.
 MAKERPM=true
