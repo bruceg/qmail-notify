@@ -451,6 +451,7 @@ const char* usage_str =
 "  -b N  Copy N bytes from the original message into the notice.\n"
 "        Setting N to -1 means copy the entire message.  (defaults to -1)\n"
 "  -d    Show debugging messages.\n"
+"  -f F  Load the bounce response message from a file named F.\n"
 "  -h    Show this usage help.\n"
 "  -m    Encode the original message as a MIME attachment.\n"
 "  -N    Don't send messages, just print them out.\n"
@@ -467,14 +468,31 @@ void usage(const char* str)
   exit(1);
 }
 
-
+void load_bounce_body(const char* filename)
+{
+  int in;
+  struct stat sbuf;
+  char* buf;
+  if ((in = open(filename, O_RDONLY)) == -1)
+    usage("Could not open bounce response file.");
+  if (fstat(in, &sbuf) == -1)
+    usage("Could not stat bounce response file.");
+  if ((buf = malloc(sbuf.st_size)) == 0)
+    usage("Could not allocate bytes for loading bounce response file.");
+  if (read(in, buf, sbuf.st_size) != sbuf.st_size)
+    usage("Could not read the bounce response file.");
+  close(in);
+  bounce_body = buf;
+}
+  
 void parse_args(int argc, char* argv[])
 {
   int ch;
-  while((ch = getopt(argc, argv, "b:dhmNrt:x:")) != EOF) {
+  while((ch = getopt(argc, argv, "b:df:hmNrt:x:")) != EOF) {
     switch(ch) {
     case 'b': opt_msgbytes = atoi(optarg);    break;
     case 'd': opt_debug = 1;                  break;
+    case 'f': load_bounce_body(optarg);       break;
     case 'h': usage(0);                       break;
     case 'm': opt_mime = 1;                   break;
     case 'N': opt_nosend = 1;                 break;
