@@ -82,6 +82,7 @@ static void parse_age(const char* s, const cli_option* o)
   if (*end != 0) die2(111, "Specified age is not a number: ", s);
   ++opt_age_count;
   opt_ages = n;
+  (void)o;
 }
 
 const char cli_help_prefix[] = "";
@@ -385,4 +386,6 @@ int cli_main(int argc, char* argv[])
   if(!opt_nosend)
     touch_run_file();
   return 0;
+  (void)argc;
+  (void)argv;
 }
