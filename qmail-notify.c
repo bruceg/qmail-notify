@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -43,6 +44,7 @@ static const char* extra_rcpt;
 static int opt_checkrcpt = 0;
 static int opt_debug = 0;
 static int opt_nosend = 0;
+static int opt_mime = 0;
 static time_t opt_age = 4*60*60;
 static const char* extra_rcpt_name = "postmaster";
 static ssize_t opt_msgbytes = -1;
@@ -205,11 +207,34 @@ void wait_inject(void)
   }
 }
 
+static char mime_boundary[65];
+
+static void make_mime_boundary(void)
+{
+  static char chars[] = "0123456789ABCDEF";
+  int i;
+  struct timeval now;
+  gettimeofday(&now, 0);
+  srandom(now.tv_sec ^ now.tv_usec);
+  for(i = 0; i < 64; i++)
+    mime_boundary[i] = chars[random() % 16];
+  mime_boundary[i] = 0;
+}
+
 static const char* bounce_header =
 "From: <MAILER-DAEMON@%s>
 To: <%s>
 Subject: delayed delivery notice
+";
 
+static const char* mime_bounce_header =
+"MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"%s\"
+
+This is a multi-part message in MIME format.
+--%s
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 ";
 
 static const char* bounce_body =
@@ -223,17 +248,32 @@ resend your message at this time.
 
 static const char* message_seperator =
 "
---- Below this line is a copy of the message.
+--- Below this line is a copy of the original message.
 
 ";
 
-void copy_message(FILE* out, const char* filename)
+static const char* mime_message_seperator =
+"
+The following attachment contains a copy of the original message.
+
+--%s
+Content-Type: message/rfc822
+Content-Disposition: inline
+
+";
+
+static const char* mime_message_end = "\n--%s--";
+
+static void copy_message(FILE* out, const char* filename)
 {
   int fd = open_file("mess", filename);
   char buf[4096];
   if(fd == -1)
     die("Could not open message file");
-  fputs(message_seperator, out);
+  if(opt_mime)
+    fprintf(out, mime_message_seperator, mime_boundary);
+  else
+    fputs(message_seperator, out);
   if(opt_msgbytes < 0)
     for(;;) {
       ssize_t rd = read(fd, buf, sizeof buf);
@@ -258,7 +298,10 @@ void copy_message(FILE* out, const char* filename)
       fputs("[...]", out);
   }
   close(fd);
-  fputc('\n', out);
+  if(opt_mime)
+    fprintf(out, mime_message_end, mime_boundary);
+  else
+    fputc('\n', out);
 }
 
 void send_bounce(const char* sender, const char* filename,
@@ -272,6 +315,11 @@ void send_bounce(const char* sender, const char* filename,
   time2str(opt_age, time1);
   time2str(queuelifetime, time2);
   fprintf(out, bounce_header, me, sender);
+  if(opt_mime) {
+    make_mime_boundary();
+    fprintf(out, mime_bounce_header, mime_boundary, mime_boundary);
+  }
+  fprintf(out, "\n");
   fprintf(out, bounce_body, me, time1, time2);
   for(ptr = locals; *ptr; ptr += strlen(ptr)+1)
     if(*ptr == 'T')
@@ -407,6 +455,7 @@ const char* usage_str =
         Setting N to -1 means copy the entire message.  (defaults to -1)
   -d    Show debugging messages.
   -h    Show this usage help.
+  -m    Encode the original message as a MIME attachment.
   -N    Don't send messages, just print them out.
   -r    Only send to senders with a domain listed in qmail's rcpthosts.
   -t N  Send notifications for messages that are N seconds old or older.
@@ -426,11 +475,12 @@ void usage(const char* str)
 void parse_args(int argc, char* argv[])
 {
   int ch;
-  while((ch = getopt(argc, argv, "b:dhNrt:x:")) != EOF) {
+  while((ch = getopt(argc, argv, "b:dhmNrt:x:")) != EOF) {
     switch(ch) {
     case 'b': opt_msgbytes = atoi(optarg);    break;
     case 'd': opt_debug = 1;                  break;
     case 'h': usage(0);                       break;
+    case 'm': opt_mime = 1;                   break;
     case 'N': opt_nosend = 1;                 break;
     case 'r': opt_checkrcpt = 1;              break;
     case 't': opt_age = atoi(optarg);         break;
