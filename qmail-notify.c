@@ -17,14 +17,10 @@
  */
 #include <sys/types.h>
 #include <ctype.h>
-#include <fcntl.h>
-#include <stdarg.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <time.h>
 #include <unistd.h>
 
 #include <sysdeps.h>
@@ -32,6 +28,8 @@
 #include <cdb/cdb.h>
 #include <cli/cli.h>
 #include <dict/dict.h>
+#include <iobuf/iobuf.h>
+#include <misc/misc.h>
 #include <msg/msg.h>
 #include <msg/wrap.h>
 #include <str/str.h>
@@ -40,6 +38,7 @@
 
 const char program[] = "qmail-notify";
 const int msg_show_pid = 0;
+int msg_debug_bits = 0;
 
 static const char* queue_dir = "/var/qmail/queue";
 static const char* control_dir = "/var/qmail/control";
@@ -76,7 +75,7 @@ cli_option cli_options[] = {
   { 'b', 0, CLI_INTEGER, 0, &opt_msgbytes,
     "Copy N bytes from the original message into the notice.",
     "entire message" },
-  { 'd', 0, CLI_FLAG, 1, &opt_debug,
+  { 'd', 0, CLI_FLAG, 1, &msg_debug_bits,
     "Show debugging messages", 0 },
   { 'f', 0, CLI_STRING, 0, &opt_bounce_filename,
     "Load the bounce response message from a file", 0 },
@@ -93,15 +92,6 @@ cli_option cli_options[] = {
     "Send a copy of the notification to the given recipient", 0 },
   { 0,0,0,0,0,0,0 }
 };
-
-void msgf(const char* fmt, ...)
-{
-  va_list ap;
-  fputs("qmail-notify: ", stderr);
-  va_start(ap, fmt);
-  vfprintf(stderr, fmt, ap);
-  fputs("\n", stderr);
-}
 
 void oom(void) { die1(111, "Out of memory"); }
 
@@ -142,8 +132,7 @@ int fork_inject(const char* sender)
 {
   int p[2];
 
-  if(opt_debug)
-    msgf("forking %s -f '' -a '%s' '%s'", qmail_inject, sender, extra_rcpt);
+  debug6(1, "forking ", qmail_inject, " -f '' -a '", sender, "' ", extra_rcpt);
 
   if(opt_nosend) {
     inject_pid = 0;
@@ -186,9 +175,8 @@ void send_bounce(const char* sender, const char* filename,
 		 const char* remotes, const char* locals)
 {
   int fd = fork_inject(sender);
-  FILE* out = fdopen(fd, "w");
-  make_bounce_body(out, sender, filename, remotes, locals);
-  if(fclose(out) == EOF)
+  make_bounce_body(fd, sender, filename, remotes, locals);
+  if (close(fd) != 0)
     die1sys(111, "Writing to qmail-inject failed");
   wait_inject();
 }
@@ -198,8 +186,7 @@ void make_bounce(const char* sender, const char* filename)
   char* remotes = read_file("remote", filename);
   char* locals = read_file("local", filename);
   unsigned undone = count_undone(remotes) + count_undone(locals);
-  if(opt_debug)
-    msgf("filename=%s sender='%s' undone=%d", filename, sender, undone);
+  debug6(1, "filename=", filename, " sender='", sender, "' undone=", utoa(undone));
   
   if(undone)
     send_bounce(sender, filename, remotes, locals);
@@ -213,31 +200,27 @@ void scan_info(const char* filename)
   char infoname[100];
   time_t expiry;
   int fd;
-  sprintf(infoname, "info/%s", filename);
+  strcpy(infoname, "info/");
+  strcpy(infoname+5, filename);
   if((fd = open(infoname, O_RDONLY)) == -1 ||
      fstat(fd, &statbuf) == -1)
     die3sys(111, "Can't open or stat info file '", infoname, "'");
   /* Handle the file only if it's expiry time (creation time + opt_age)
      is before now and after the last run */
   expiry = statbuf.st_mtime + opt_age;
-  if(opt_debug)
-    msgf("filename=%s expiry=%ld", filename, expiry);
-  if(expiry > now) {
-    if(opt_debug)
-      msgf("ignoring, has not yet expired");
-  }
-  else if(expiry <= lastrun) {
-    if(opt_debug)
-      msgf("ignoring, was previously expired");
-  }
+  debug4(1, "filename=", filename, " expiry=", utoa(expiry));
+  if(expiry > now)
+    debug1(1, "ignoring, has not yet expired");
+  else if(expiry <= lastrun)
+    debug1(1, "ignoring, was previously expired");
   else {
     /* Load the sender address from the info file */
     char* sender = malloc(statbuf.st_size);
     read(fd, sender, statbuf.st_size);
     if(check_rcpt(sender+1))
       make_bounce(sender+1, filename);
-    else if(opt_debug)
-      msgf("ignoring, sender was not in rcpthosts");
+    else
+      debug1(1, "ignoring, sender was not in rcpthosts");
     free(sender);
   }
   close(fd);
@@ -248,13 +231,16 @@ void scan_dir(const char* dirnum)
   DIR* dir;
   direntry* entry;
   char buf1[100];
-  sprintf(buf1, "info/%s", dirnum);
+  strcpy(buf1, "info/");
+  strcpy(buf1+5, dirnum);
   if((dir = opendir(buf1)) == 0)
     die1sys(111, "Can't open queue directory");
   while((entry = readdir(dir)) != 0) {
     if(entry->d_name[0] != '.') {
       char filename[100];
-      sprintf(filename, "%s/%s", dirnum, entry->d_name);
+      strcpy(filename, dirnum);
+      strcat(filename, "/");
+      strcat(filename, entry->d_name);
       scan_info(filename);
     }
   }
@@ -326,21 +312,21 @@ void load_config(void)
 
   if (opt_checkrcpt) load_rcpthosts();
 
-  if(opt_debug) {
-    msgf("me='%s'", me);
-    msgf("queuelifetime=%ld", queuelifetime);
-    msgf("extra_rcpt='%s'", extra_rcpt);
-    msgf("now=%ld", now);
-    msgf("lastrun=%ld", lastrun);
-    msgf("opt_age=%ld", opt_age);
-  }
+  debug3(1, "me='", me, "'");
+  debug2(1, "queuelifetime=", utoa(queuelifetime));
+  debug3(1, "extra_rcpt='", extra_rcpt, "'");
+  debug2(1, "now=", utoa(now));
+  debug2(1, "lastrun=", utoa(lastrun));
+  debug2(1, "opt_age=", utoa(opt_age));
 }
 
 void touch_run_file(void)
 {
-  FILE* out = fopen(run_file, "w");
-  if(!out || fprintf(out, "%ld", now) == EOF || fclose(out) == EOF)
-    die1(111, "Could not update run file");
+  obuf out;
+  if (!obuf_open(&out, run_file, OBUF_CREATE|OBUF_EXCLUSIVE, 0666, 0) ||
+      !obuf_putu(&out, now) ||
+      !obuf_close(&out))
+    die1sys(111, "Could not update run file");
 }
 
 int cli_main(int argc, char* argv[])

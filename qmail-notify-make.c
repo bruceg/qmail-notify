@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -132,13 +133,15 @@ static void time2str(time_t secs, char* buf)
     sprintf(buf, "%ld seconds", secs);
 }
 
-void make_bounce_body(FILE* out, const char* sender, const char* filename,
+void make_bounce_body(int fd, const char* sender, const char* filename,
 		      const char* remotes, const char* locals)
 {
   const char* ptr;
   char time1[128];
   char time2[128];
+  FILE* out;
 
+  out = fdopen(fd, "w");
   time2str(opt_age, time1);
   time2str(queuelifetime, time2);
   fprintf(out, bounce_header, me, sender);
@@ -157,4 +160,6 @@ void make_bounce_body(FILE* out, const char* sender, const char* filename,
       fprintf(out, "\t%s\n", ptr+1);
   if(opt_msgbytes)
     copy_message(out, filename);
+  if(fflush(out) != 0)
+    die1sys(111, "Could not write bounce message");
 }
