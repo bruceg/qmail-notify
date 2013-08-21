@@ -17,6 +17,7 @@
  */
 #include <sys/types.h>
 #include <ctype.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -230,8 +231,12 @@ void scan_info(const char* filename)
   strcpy(infoname, "info/");
   strcpy(infoname+5, filename);
   if((fd = open(infoname, O_RDONLY)) == -1 ||
-     fstat(fd, &statbuf) == -1)
+     fstat(fd, &statbuf) == -1) {
+    /* This could race with qmail-clean, ignore missing files. */
+    if (errno == ENOENT)
+      return;
     die3sys(111, "Can't open or stat info file '", infoname, "'");
+  }
   /* Handle the file only if it's expiry time (creation time + opt_age)
      is before now and after the last run */
   for (i = 0; i < opt_age_count; ++i) {

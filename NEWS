@@ -6,6 +6,8 @@ Changes in version 0.95
 
 - Allow for some of the hard-coded paths to be modified.
 
+- Fixed treating missing info files as fatal errors.
+
 Development of this version has been sponsored by FutureQuest, Inc.
 ossi@FutureQuest.net  http://www.FutureQuest.net/
 -------------------------------------------------------------------------------
