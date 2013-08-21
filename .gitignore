@@ -1,0 +1,15 @@
+*.o
+ANNOUNCEMENT
+AUTOFILES
+Makefile
+README
+SRCFILES
+TARGETS
+compile
+conf_bin.c
+installer
+instcheck
+insthier.o
+instshow
+load
+qmail-notify
