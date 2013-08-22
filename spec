@@ -2,11 +2,12 @@ Name: @PACKAGE@
 Summary: Delayed delivery notification for qmail
 Version: @VERSION@
 Release: 1
-Copyright: GPL
+License: GPL
 Group: Utilities/System
-Source: http://em.ca/~bruceg/@PACKAGE@/@VERSION@/@PACKAGE@-@VERSION@.tar.gz
+Source: http://untroubled.org/@PACKAGE@/@PACKAGE@-@VERSION@.tar.gz
 BuildRoot: %{_tmppath}/@PACKAGE@-root
-URL: http://em.ca/~bruceg/@PACKAGE@/
+BuildRequires: bglibs >= 1.019
+URL: http://untroubled.org/@PACKAGE@/
 Packager: Bruce Guenter <bruceg@em.ca>
 
 %description
