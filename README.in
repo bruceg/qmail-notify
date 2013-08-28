@@ -1,6 +1,6 @@
 @PACKAGE@
 Delayed delivery notification for qmail
-Bruce Guenter <bruceg@em.ca>
+Bruce Guenter <bruce@untroubled.org>
 Version @VERSION@
 @TODAY@
 
@@ -13,8 +13,8 @@ To subscribe, send an email to:
 A mailing list archive is available at:
 	http://lists.untroubled.org/?list=bgware
 
-Development versions of @PACKAGE@ are available via Subversion at:
-	svn://bruce-guenter.dyndns.org/@PACKAGE@/trunk
+Development versions of @PACKAGE@ are available at GitHub:
+	https://github.com/bruceg/@PACKAGE@
 
 Requirements:
 
@@ -45,7 +45,7 @@ Configuration:
   (controlled by the "-t" option); the third is replaced with the
   message lifetime (controled by the qmail control/queuelifetime file).
 
-This program is Copyright(C) 2004 Bruce Guenter, and may be copied
+This program is Copyright(C) @YEAR@ Bruce Guenter, and may be copied
 according to the GNU GENERAL PUBLIC LICENSE (GPL) Version 2 or a later
 version.  A copy of this license is included with this package.  This
 package comes with no warranty of any kind.
