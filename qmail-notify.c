@@ -1,5 +1,5 @@
 /* qmail-notify -- Delayed delivery notification for qmail
- * Copyright (C) 2004  Bruce Guenter <bruceg@em.ca>
+ * Copyright (C) 2013  Bruce Guenter <bruceg@em.ca>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,15 +35,14 @@
 #include <msg/wrap.h>
 #include <str/str.h>
 
+#include "conf_qmail.h"
 #include "qmail-notify.h"
 
 const char program[] = "qmail-notify";
 const int msg_show_pid = 0;
 int msg_debug_bits = 0;
 
-static const char queue_dir[] = "/var/qmail/queue";
-static const char control_dir[] = "/var/qmail/control";
-static const char qmail_inject[] = "/var/qmail/bin/qmail-inject";
+static const char qmail_inject[] = "bin/qmail-inject";
 static const char run_file[] = "/var/run/qmail-notify.time";
 static const time_t default_age = 4*60*60;
 
@@ -172,6 +171,7 @@ int fork_inject(const char* sender)
   case -1:
     die1sys(111, "Could not fork");
   case 0:
+    wrap_chdir(conf_qmail);
     close(p[1]);
     close(0);
     dup2(p[0], 0);
@@ -288,7 +288,8 @@ void scan_queue(void)
 {
   DIR* dir;
   direntry* entry;
-  wrap_chdir(queue_dir);
+  wrap_chdir(conf_qmail);
+  wrap_chdir("queue");
   if((dir = opendir("info")) == 0)
     die1sys(111, "Can't open queue directory");
   while((entry = readdir(dir)) != 0)
@@ -326,7 +327,8 @@ void load_config(void)
 {
   unsigned i;
 
-  wrap_chdir(control_dir);
+  wrap_chdir(conf_qmail);
+  wrap_chdir("control");
   
   me = read_line("me");
   if(!*me)

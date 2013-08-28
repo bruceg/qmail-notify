@@ -1,4 +1,5 @@
 openread.o
 qmail-notify-make.o
+conf_qmail.o
 -lbg-cli
 -lbg
