@@ -6,7 +6,7 @@ License: GPL
 Group: Utilities/System
 Source: http://untroubled.org/@PACKAGE@/@PACKAGE@-@VERSION@.tar.gz
 BuildRoot: %{_tmppath}/@PACKAGE@-root
-BuildRequires: bglibs >= 1.019
+BuildRequires: bglibs >= 1.022
 URL: http://untroubled.org/@PACKAGE@/
 Packager: Bruce Guenter <bruceg@em.ca>
 
@@ -27,10 +27,7 @@ make
 rm -fr %{buildroot}
 mkdir -p %{buildroot}%{_bindir}
 echo %{buildroot}%{_bindir} >conf-bin
-rm -f installer instcheck conf_bin.c insthier.o
-make installer instcheck
-./installer
-./instcheck
+make install install_prefix=%{buildroot}
 
 mkdir -p %{buildroot}/etc/cron.hourly
 install -m 755 cron.hourly %{buildroot}/etc/cron.hourly/qmail-notify

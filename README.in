@@ -27,11 +27,7 @@ Installation:
 - Make sure the latest version of bglibs from
   http://untroubled.org/bglibs/ is compiled and installed.
 - Build the sources by running "make"
-- Run the "instshow" command to see what will be installed (optional).
-- After the package has been compiled, run the following commands as root:
-	./installer
-	./instcheck
-  These commands will produce no output if there are no errors.
+- After the package has been compiled, run "make install" as root.
 
 Configuration:
 
