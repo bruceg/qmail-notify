@@ -55,6 +55,7 @@ static const char* extra_rcpt = 0;
 
 static const char* opt_run_file = run_file;
 static const char* opt_qmail_inject = qmail_inject;
+static const char* qmail_home;
 int opt_checkrcpt = 0;
 int opt_debug = 0;
 int opt_nosend = 0;
@@ -171,7 +172,7 @@ int fork_inject(const char* sender)
   case -1:
     die1sys(111, "Could not fork");
   case 0:
-    wrap_chdir(conf_qmail);
+    wrap_chdir(qmail_home);
     close(p[1]);
     close(0);
     dup2(p[0], 0);
@@ -288,7 +289,7 @@ void scan_queue(void)
 {
   DIR* dir;
   direntry* entry;
-  wrap_chdir(conf_qmail);
+  wrap_chdir(qmail_home);
   wrap_chdir("queue");
   if((dir = opendir("info")) == 0)
     die1sys(111, "Can't open queue directory");
@@ -327,7 +328,7 @@ void load_config(void)
 {
   unsigned i;
 
-  wrap_chdir(conf_qmail);
+  wrap_chdir(qmail_home);
   wrap_chdir("control");
   
   me = read_line("me");
@@ -380,6 +381,8 @@ static int cmp_age(const void* aptr, const void* bptr)
 
 int cli_main(int argc, char* argv[])
 {
+  if ((qmail_home = getenv("QMAILHOME")) == NULL)
+    qmail_home = conf_qmail;
   if (!opt_ages) {
     opt_ages = &default_age;
     opt_age_count = 1;

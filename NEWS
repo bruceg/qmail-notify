@@ -8,6 +8,8 @@ Changes in version 0.95
 
 - Fixed treating missing info files as fatal errors.
 
+- Allows for configuring the base qmail directory in $QMAILHOME.
+
 - Switched to using bg-installer for installation.
 
 Development of this version has been sponsored by FutureQuest, Inc.
