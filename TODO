@@ -1,6 +1,4 @@
 - Make the bounce generation code a stand-alone module to allow plugging
   in other (modified) code.
 
-- Convert all I/O to use lib/iobuf.
-
 - Convert all dynamic string management to use lib/str.
