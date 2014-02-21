@@ -1,0 +1,26 @@
+setup
+touch -d '2 days ago' $QMAILHOME/queue/*/0/0
+notify
+cat -e $tmp/out/*
+<result>
+From: <MAILER-DAEMON@host.name.com>$
+To: <sender0@example.com>$
+Subject: delayed delivery notice$
+$
+Your message has been received by host.name.com but has been$
+undeliverable to the following recipients for at least 4 hours.$
+The mail system will continue to attempt to deliver your message$
+to these recipients for a total of 1 days.  You do not need to$
+resend your message at this time.$
+$
+Recipient(s):$
+	recip0@example.com$
+$
+--- Below this line is a copy of the original message.$
+$
+From: <sender0@example.com>$
+To: <recip0@example.com>$
+Subject: Test 0$
+$
+Testing 0$
+$
