@@ -177,8 +177,7 @@ int fork_inject(const char* sender)
     close(0);
     dup2(p[0], 0);
     close(p[0]);
-    execl(opt_qmail_inject, opt_qmail_inject, "-f", "", "-a", sender, 
-	  extra_rcpt, 0);
+    execl(opt_qmail_inject, opt_qmail_inject, "-f", "", "-a", sender, extra_rcpt, NULL);
     die1sys(111, "Exec of qmail-inject failed");
   default:
     close(p[0]);
