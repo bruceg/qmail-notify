@@ -14,3 +14,8 @@ insthier.o
 instshow
 load
 qmail-notify
+qmail-notify-cli.c
+qmail-notify-cli.h
+qmail-notify.1
+qmail-notify.1.html
+tests.sh

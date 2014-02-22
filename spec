@@ -37,6 +37,6 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
-%doc COPYING NEWS README
+%doc COPYING NEWS README qmail-notify.1.html
 %config /etc/cron.hourly/*
 %{_bindir}/*

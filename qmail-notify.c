@@ -36,14 +36,11 @@
 #include <str/str.h>
 
 #include "conf_qmail.h"
+#include "qmail-notify-cli.h"
 #include "qmail-notify.h"
 
 const char program[] = "qmail-notify";
-const int msg_show_pid = 0;
-int msg_debug_bits = 0;
 
-static const char qmail_inject[] = "bin/qmail-inject";
-static const char run_file[] = "/var/run/qmail-notify.time";
 static const time_t default_age = 4*60*60;
 
 static time_t now;
@@ -53,18 +50,9 @@ const char* me = 0;
 time_t queuelifetime = 0;
 static const char* extra_rcpt = 0;
 
-static const char* opt_run_file = run_file;
-static const char* opt_qmail_inject = qmail_inject;
 static const char* qmail_home;
-int opt_checkrcpt = 0;
-int opt_debug = 0;
-int opt_nosend = 0;
-int opt_mime = 0;
 static const time_t* opt_ages = 0;
 static unsigned opt_age_count = 0;
-const char* extra_rcpt_name = 0;
-int opt_msgbytes = -1;
-const char* opt_bounce_filename = 0;
 
 static dict rcpthosts;
 static struct cdb morercpthosts;
@@ -73,7 +61,7 @@ static str strbuf;
 
 void oom(void) { die1(111, "Out of memory"); }
 
-static void parse_age(const char* s, const cli_option* o)
+void parse_age(const char* s, const cli_option* o)
 {
   char* end;
   time_t* n;
@@ -85,42 +73,6 @@ static void parse_age(const char* s, const cli_option* o)
   opt_ages = n;
   (void)o;
 }
-
-const char cli_help_prefix[] = "";
-const char cli_help_suffix[] = "\n"
-"The -t option may be used multiple times to effect multiple notifications.\n"
-"For example:\n"
-"    qmail-notify -t 14400 -t 86400\n"
-"Would send one notification at 4 hours, and one at 24 hours.  The times\n"
-"will be sorted internally and may be listed in any order.\n";
-const char cli_args_usage[] = "";
-const int cli_args_min = 0;
-const int cli_args_max = 0;
-cli_option cli_options[] = {
-  { 'b', 0, CLI_INTEGER, 0, &opt_msgbytes,
-    "Copy N bytes from the original message into the notice.",
-    "entire message" },
-  { 'd', 0, CLI_FLAG, 1, &msg_debug_bits,
-    "Show debugging messages", 0 },
-  { 'f', 0, CLI_STRING, 0, &opt_bounce_filename,
-    "Load the bounce response message from a file", 0 },
-  { 'm', 0, CLI_FLAG, 1, &opt_mime,
-    "Encode the original message as a MIME attachment", 0 },
-  { 'N', 0, CLI_FLAG, 1, &opt_nosend,
-    "Don't send messages, just print them out", 0 },
-  { 'q', 0, CLI_STRING, 0, &opt_qmail_inject,
-    "Path to qmail-inject program", qmail_inject },
-  { 'r', 0, CLI_FLAG, 1, &opt_checkrcpt,
-    "Only respond to senders with a domain listed in qmail's rcpthosts", 0 },
-  { 't', 0, CLI_FUNCTION, 0, parse_age,
-    "Send notifications for messages that are at least N seconds old",
-    "4 hours" },
-  { 'T', 0, CLI_STRING, 0, &opt_run_file,
-    "Full path to the timestamp file", run_file },
-  { 'x', 0, CLI_STRING, 0, &extra_rcpt_name,
-    "Send a copy of the notification to the given recipient", 0 },
-  { 0,0,0,0,0,0,0 }
-};
 
 unsigned count_undone(const char* list)
 {
@@ -380,6 +332,8 @@ static int cmp_age(const void* aptr, const void* bptr)
 
 int cli_main(int argc, char* argv[])
 {
+  if (opt_debug)
+    msg_debug_bits |= 0xff;
   if ((qmail_home = getenv("QMAILHOME")) == NULL)
     qmail_home = conf_qmail;
   if (!opt_ages) {

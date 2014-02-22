@@ -1,2 +1,5 @@
 >bin
 c:::755::qmail-notify
+>man
+d:::755:man1
+c:::755:man1:qmail-notify.1

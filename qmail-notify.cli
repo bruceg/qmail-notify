@@ -1,0 +1,89 @@
+Description:	Send notifications for delayed messages in the qmail queue.
+Min:		0
+Max:		0
+Show-Pid:	0
+Usage:
+
+[prefix]
+The text in this section is shown in the  command  usage
+before the options description.
+
+[options]
+-b --copybytes INTEGER opt_msgbytes = -1
+Copy a limited number bytes from the original message into the notice. = copying the entire message
+
+-d --debug FLAG=1 opt_debug
+Show debugging messages.
+
+-f --msgfile STRING opt_bounce_filename
+Load the bounce response message from the named file.
+
+-m --mime FLAG=1 opt_mime
+Encode the original message as a MIME attachment.
+
+-N --nosend FLAG=1 opt_nosend
+Don't send messages, just print them out.
+
+-q --qmail-inject STRING opt_qmail_inject = "bin/qmail-inject"
+Path to the qmail-inject program, relative to @env{$QMAILHOME}. = bin/qmail-inject
+
+-r --check-rcpts FLAG=1 opt_checkrcpt
+Only respond to senders with a domain listed in qmail's rcpthosts
+
+-t --time FUNCTION parse_age
+Send notifications for messages that are at least N seconds old. = 14400 (4 hours)
+
+-T --timestamp-file STRING opt_run_file = "/var/run/qmail-notify.time"
+Full path to the timestamp file = @file{/var/run/qmail-notify.time}
+
+-x --extra-rcpt STRING extra_rcpt_name
+Send a copy of the notification to the given recipient
+
+[suffix]
+
+The -t option may be used multiple times to effect multiple notifications.
+For example:
+    qmail-notify -t 14400 -t 86400
+Would send one notification at 4 hours, and one at 24 hours.  The times
+will be sorted internally and may be listed in any order.
+
+[description]
+
+qmail-notify scans the qmail queue for messages older than the time
+given to the @samp{-t} options and sends a delayed delivery notification
+email to the sender address for each such message message.
+
+The most common usage of @file{qmail-notify} is to put it into an hourly
+cron job.
+
+[environment]
+@table @env
+
+@item QMAILHOME
+
+The base directory under which all qmail files are located. In
+particular, @file{qmail-notify} looks for the queue in
+@env{$QMAILHOME}@file{/queue} and injects messages with
+@env{$QMAILHOME}@file{/bin/qmail-inject}. Defaults to @samp{/var/qmail}.
+
+@end table
+
+[files]
+@table @file
+
+@item $QMAILHOME/control/me
+
+@item $QMAILHOME/control/queuelifetime
+
+@item /var/run/qmail-inject.time
+
+Timestamp when the program last ran.
+
+@end table
+
+[see also]
+qmail(7)
+
+[author]
+
+Bruce Guenter <bruce@untroubled.org>
