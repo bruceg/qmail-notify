@@ -24,16 +24,16 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <sysdeps.h>
-#include <systime.h>
-#include <cdb/cdb.h>
-#include <cli/cli.h>
-#include <dict/dict.h>
-#include <iobuf/iobuf.h>
-#include <misc/misc.h>
-#include <msg/msg.h>
-#include <msg/wrap.h>
-#include <str/str.h>
+#include <bglibs/sysdeps.h>
+#include <bglibs/systime.h>
+#include <bglibs/cdb.h>
+#include <bglibs/cli.h>
+#include <bglibs/dict.h>
+#include <bglibs/iobuf.h>
+#include <bglibs/misc.h>
+#include <bglibs/msg.h>
+#include <bglibs/wrap.h>
+#include <bglibs/str.h>
 
 #include "conf_qmail.h"
 #include "qmail-notify-cli.h"

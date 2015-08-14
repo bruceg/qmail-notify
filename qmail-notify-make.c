@@ -4,10 +4,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <systime.h>
-#include <iobuf/obuf.h>
-#include <misc/misc.h>
-#include <msg/msg.h>
+#include <bglibs/systime.h>
+#include <bglibs/obuf.h>
+#include <bglibs/misc.h>
+#include <bglibs/msg.h>
 
 #include "qmail-notify.h"
 

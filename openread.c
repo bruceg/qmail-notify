@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <str/str.h>
+#include <bglibs/str.h>
 
 #include "qmail-notify.h"
 

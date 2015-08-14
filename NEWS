@@ -12,6 +12,8 @@ Changes in version 0.96
 
 - Switched to using bg-installer for installation.
 
+- Updated for bglibs v2.
+
 Development of this version has been sponsored by FutureQuest, Inc.
 ossi@FutureQuest.net  http://www.FutureQuest.net/
 -------------------------------------------------------------------------------
