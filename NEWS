@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
-Changes in version 0.96
+Changes in version 1.0
 
 - Now supports sending multiple notifications for a single message by
   allowing multiple message ages to be specified with the "-t" option.
