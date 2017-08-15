@@ -118,7 +118,8 @@ int fork_inject(const char* sender)
     return dup(1);
   }
   
-  pipe(p);
+  if (pipe(p) != 0)
+    die1sys(111, "Could not create pipe");
   inject_pid = fork();
   switch(inject_pid) {
   case -1:
@@ -203,7 +204,8 @@ void scan_info(const char* filename)
     else {
       /* Load the sender address from the info file */
       char* sender = malloc(statbuf.st_size);
-      read(fd, sender, statbuf.st_size);
+      if (read(fd, sender, statbuf.st_size) != statbuf.st_size)
+        die3sys(111, "Reading from info file '", infoname, "' failed");
       if(check_rcpt(sender+1))
 	make_bounce(sender+1, filename, opt_ages[i]);
       else

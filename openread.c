@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <bglibs/msg.h>
 #include <bglibs/str.h>
 
 #include "qmail-notify.h"
@@ -31,7 +32,8 @@ char* read_file(const char* prefix, const char* filename)
   }
   else {
     data = malloc(statbuf.st_size+1);
-    read(fd, data, statbuf.st_size);
+    if (read(fd, data, statbuf.st_size) != statbuf.st_size)
+      die3sys(111, "Could not read data from '", filename, "'");
     data[statbuf.st_size] = 0;
   }
   close(fd);
