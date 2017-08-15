@@ -111,7 +111,7 @@ int fork_inject(const char* sender)
 {
   int p[2];
 
-  debug6(1, "forking ", opt_qmail_inject, " -f '' -a '", sender, "' ", extra_rcpt);
+  debug6(1, "forking ", opt_qmail_inject, " -f '' -a -- '", sender, "' ", extra_rcpt);
 
   if(opt_nosend) {
     inject_pid = 0;
@@ -129,7 +129,7 @@ int fork_inject(const char* sender)
     close(0);
     dup2(p[0], 0);
     close(p[0]);
-    execl(opt_qmail_inject, opt_qmail_inject, "-f", "", "-a", sender, extra_rcpt, NULL);
+    execl(opt_qmail_inject, opt_qmail_inject, "-f", "", "-a", "--", sender, extra_rcpt, NULL);
     die1sys(111, "Exec of qmail-inject failed");
   default:
     close(p[0]);

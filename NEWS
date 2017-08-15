@@ -6,6 +6,8 @@ Changes in version 1.0
 
 - Allow for some of the hard-coded paths to be modified.
 
+- Fixed handling of sender addresses starting with a hyphen.
+
 - Fixed treating missing info files as fatal errors.
 
 - Allows for configuring the base qmail directory in $QMAILHOME.
